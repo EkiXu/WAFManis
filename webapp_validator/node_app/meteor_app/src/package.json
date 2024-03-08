@@ -1,0 +1,12 @@
+{
+  "name": "meteor_app",
+  "private": true,
+  "scripts": {
+    "start": "meteor run"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.17.9",
+    "meteor-node-stubs": "^1.2.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}

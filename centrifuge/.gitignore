@@ -1,0 +1,7 @@
+./mini_evasion/*
+./evasion/*
+./mini_sample/*
+*.case
+*.input
+*.log
+tests.py

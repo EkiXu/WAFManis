@@ -1,12 +1,11 @@
 package main
 
 import (
-	"io"
+	b64 "encoding/base64"
+	"encoding/json"
 	"log"
 	"net"
-	"os"
-	"path/filepath"
-	"time"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -16,10 +15,10 @@ type Config struct {
 	Proxy struct {
 		ListenAddress string `toml:"listenAddress"`
 	} `toml:"proxy"`
-	Target struct {
-		Address       string `toml:"address"`
-		SaveDirectory string `toml:"saveDirectory"`
-	} `toml:"target"`
+}
+
+type ResponseData struct {
+	RawRequestData string `json:"req"`
 }
 
 func main() {
@@ -35,15 +34,17 @@ func main() {
 	}
 	defer listener.Close()
 
-	log.Printf("Listening on %s, forwarding to %s", config.Proxy.ListenAddress, config.Target.Address)
+	log.Printf("Listening on %s ", config.Proxy.ListenAddress)
 
 	for {
 		conn, err := listener.Accept()
+
 		if err != nil {
 			log.Printf("Failed to accept connection: %v", err)
 			continue
 		}
 
+		log.Printf("Accept connection")
 		go handleConnection(conn, config)
 	}
 }
@@ -51,26 +52,30 @@ func main() {
 func handleConnection(srcConn net.Conn, config Config) {
 	defer srcConn.Close()
 
-	targetConn, err := net.Dial("tcp", config.Target.Address)
-	if err != nil {
-		log.Printf("Failed to connect to target %s: %v", config.Target.Address, err)
-		return
-	}
-	defer targetConn.Close()
-
-	// Save path for raw data
-	savePath := filepath.Join(config.Target.SaveDirectory, time.Now().Format("20060102_150405")+".tcpbin")
-	saveFile, err := os.Create(savePath)
-	if err != nil {
-		log.Printf("Failed to create save file: %v", err)
-		return
-	}
-	defer saveFile.Close()
-
-	// Use TeeReader to read data from srcConn and write it to saveFile simultaneously
-	tee := io.TeeReader(srcConn, saveFile)
+	requestData := make([]byte, 4096)
 
 	// Copy data between src and target, saving data to file
-	go io.Copy(targetConn, tee)
-	io.Copy(srcConn, targetConn)
+	//for {
+	// Read the incoming connection into the buffer.
+
+	// Read data from the connection
+	readLen, err := srcConn.Read(requestData)
+	if err != nil {
+		log.Println("Error reading response from target:", err)
+		return
+	}
+
+	reqData := b64.StdEncoding.EncodeToString(requestData[:readLen])
+
+	respData := ResponseData{
+		RawRequestData: reqData,
+	}
+
+	jsonData, _ := json.Marshal(respData)
+
+	// Send a response back to the person contacting us.
+	srcConn.Write([]byte("HTTP/1.1 299 OK\r\nContent-Type: application/json\r\nContent-Length:"))
+	srcConn.Write([]byte(strconv.Itoa(len(jsonData))))
+	srcConn.Write([]byte("\r\n\r\n"))
+	srcConn.Write(jsonData)
 }

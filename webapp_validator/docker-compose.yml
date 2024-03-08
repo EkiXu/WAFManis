@@ -1,0 +1,103 @@
+version: '3'
+services:
+  flask:
+    build: python_app/flask_app
+    image: wafmanis/flask_app
+    ports:
+      - "15001:6000"
+  webpy:
+    build: python_app/webpy_app
+    image: wafmanis/webpy_app
+    ports:
+      - "15002:8080"
+  fastapi:
+    build: python_app/fastapi_app
+    image: wafmanis/fastapi_app
+    ports:
+      - "15003:6000"
+  django:
+    build: python_app/django_app
+    image: wafmanis/django_app
+    ports:
+      - "15004:6000"
+  gin:
+    build: go_app/gin_app
+    image: wafmanis/gin_app
+    ports:
+      - "15005:6000"
+  echo:
+    build: go_app/echo_app
+    image: wafmanis/echo_app
+    ports:
+      - "15006:6000"
+  beego:
+    build: go_app/beego_app
+    image: wafmanis/beego_app
+    ports:
+      - "15007:6000"
+  laravel:
+    build: php_app/laravel_app
+    image: wafmanis/laravel_app
+    ports:
+      - "15008:80"
+  codeigniter:
+    build: php_app/codeigniter_app
+    image: wafmanis/codeigniter_app
+    ports:
+      - "15009:80"
+  symfony:
+    build: php_app/symfony_app
+    image: wafmanis/symfony_app
+    ports:
+      - "15010:80"
+  express:
+    build: node_app/express_app
+    image: wafmanis/express_app
+    ports:
+      - "15011:6000"
+  fastify:
+    build: node_app/fastify_app
+    image: wafmanis/fastify_app
+    ports:
+      - "15012:6000"
+  koa:
+    build: node_app/koa_app
+    image: wafmanis/koa_app
+    ports:
+      - "15013:6000"
+  nestjs:
+    build: node_app/nestjs_app
+    image: wafmanis/nestjs_app
+    ports:
+      - "15014:6000"
+  sails_app:
+    build: node_app/sails_app
+    image: wafmanis/sails_app
+    ports:
+      - "15015:6000"
+  rocket:
+    build: rust_app/rocket_app
+    image: wafmanis/rocket_app
+    ports:
+      - "15016:8000"
+  rails:
+    build: ruby_app/rails_app
+    image: wafmanis/rails_app
+    ports:
+      - "15017:3000"
+  aspnet_core:
+    build: dotnet_app/aspnet_core_app
+    image: wafmanis/aspnet_core_app
+    ports:
+      - "15018:80"
+  spring:
+    build: java_app/spring_app
+    image: wafmanis/spring_app
+    ports:
+      - "15019:6000"
+  meteor:
+    build: node_app/meteor_app
+    image: wafmanis/meteor_app
+    ports:
+      - "15020:3000"
+

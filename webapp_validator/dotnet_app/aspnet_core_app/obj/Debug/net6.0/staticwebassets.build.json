@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "bEQayoF1/eLSGZkBKuarOKVPcG+KCWAUaKgDu1cp+R4=",
+  "Source": "fuzz_aspnet_core",
+  "BasePath": "_content/fuzz_aspnet_core",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

