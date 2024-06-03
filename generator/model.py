@@ -66,6 +66,8 @@ class Node:
 class RequestSampleEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o,Node):
+            if isinstance(o.val,bytes):
+                o.val = o.val.decode()
             return {
                 "val":o.val,
                 "is_terminal": o.is_terminal,
@@ -109,7 +111,10 @@ class RequestSample:
             self.node_pool.append(cur)
             children = cur.expand()
             if cur.is_terminal:
-                res += cur.val
+                if isinstance(cur.val,str):
+                    res += cur.val
+                elif isinstance(cur.val,bytes):
+                    res += cur.val.decode()
                 continue
             children.reverse()
             q.extendleft(children)
